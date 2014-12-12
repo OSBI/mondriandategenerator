@@ -15,14 +15,11 @@ import mondrian.i18n.LocalizingDynamicSchemaProcessor;
 import mondrian.olap.Util;
 
 import static bi.meteorite.SchemaManipulation.*;
-import static bi.meteorite.SchemaManipulation.insertDimension;
 
 /**
  * Hello world!
- *
  */
-public class App  extends LocalizingDynamicSchemaProcessor
-{
+public class MondrianDateDimension extends LocalizingDynamicSchemaProcessor {
   public String filter(String schemaUrl, Util.PropertyList connectInfo, InputStream stream) throws Exception {
 
     String schema = super.filter(schemaUrl, connectInfo, stream);
@@ -30,9 +27,8 @@ public class App  extends LocalizingDynamicSchemaProcessor
     try {
 
 
-
-      if(connectInfo.get("StartDate") == null || connectInfo.get("EndDate") == null || connectInfo.get("Cubes") ==
-                                                                                       null){
+      if (connectInfo.get("StartDate") == null || connectInfo.get("EndDate") == null || connectInfo.get("Cubes") ==
+                                                                                        null) {
         throw new Exception("Empty Start or End Date");
       }
 
@@ -40,10 +36,9 @@ public class App  extends LocalizingDynamicSchemaProcessor
 
       String table;
       String initid = connectInfo.get("InitID");
-      if(initid != null){
+      if (initid != null) {
         table = createTable(connectInfo.get("StartDate"), connectInfo.get("EndDate"), initid);
-      }
-      else{
+      } else {
         table = createTable(connectInfo.get("StartDate"), connectInfo.get("EndDate"), null);
       }
 
@@ -81,42 +76,42 @@ public class App  extends LocalizingDynamicSchemaProcessor
                                      + "</Hierarchies>\n"
                                      + "</Dimension>").apply(schema);
 
-      for(String s: kv) {
+      for (String s : kv) {
         String[] detail = s.split("=");
         schema = insertDimension(detail[0], "<Dimension source='Auto Date'/>").apply(schema);
         schema = insertDimensionLinks(detail[0],
-            ArrayMap.of(detail[0], "<ForeignKeyLink dimension='Auto Date' foreignKeyColumn='" + detail[1] + "'/>")).apply
-            (schema);
+            ArrayMap.of(detail[0], "<ForeignKeyLink dimension='Auto Date' foreignKeyColumn='" + detail[1] + "'/>"))
+            .apply
+                (schema);
       }
 
-    }
-    catch (PatternSyntaxException pse) {
+    } catch (PatternSyntaxException pse) {
       pse.printStackTrace();
     }
 
     return schema;
   }
 
-  private String createTable(String start, String end, String initid){
+  private String createTable(String start, String end, String initid) {
 
     String t = "Numeric";
-    if(initid == null){
+    if (initid == null) {
       t = "Date";
     }
     return "<InlineTable alias=\"gendate\">\n"
-    + "    <ColumnDefs>\n"
-    + "    <ColumnDef name=\"id\" type=\""+t+"\"/>\n"
-    + "    <ColumnDef name=\"year\" type=\"String\"/>\n"
-    + "    <ColumnDef name=\"qtr\" type=\"String\"/>\n"
-    + "    <ColumnDef name=\"month\" type=\"String\"/>\n"
-    + "    <ColumnDef name=\"month name\" type=\"String\"/>\n"
-    + "    <ColumnDef name=\"day\" type=\"String\"/>\n"
-    + "    </ColumnDefs>\n"
-    + "    <Rows>\n"
+           + "    <ColumnDefs>\n"
+           + "    <ColumnDef name=\"id\" type=\"" + t + "\"/>\n"
+           + "    <ColumnDef name=\"year\" type=\"String\"/>\n"
+           + "    <ColumnDef name=\"qtr\" type=\"String\"/>\n"
+           + "    <ColumnDef name=\"month\" type=\"String\"/>\n"
+           + "    <ColumnDef name=\"month name\" type=\"String\"/>\n"
+           + "    <ColumnDef name=\"day\" type=\"String\"/>\n"
+           + "    </ColumnDefs>\n"
+           + "    <Rows>\n"
 
-    + createRow(start, end, initid)
-    + "    </Rows>\n"
-    + "    </InlineTable>";
+           + createRow(start, end, initid)
+           + "    </Rows>\n"
+           + "    </InlineTable>";
   }
 
   private String createRow(String start, String end, String initid) {
@@ -143,7 +138,7 @@ public class App  extends LocalizingDynamicSchemaProcessor
       int d = Integer.parseInt(start.substring(7, 8));
       c.set(y, m2, d);
       c.add(Calendar.DAY_OF_YEAR, i);
-      String q = "Q"+ Integer.toString(c.get(Calendar.MONTH) / 3 + 1);
+      String q = "Q" + Integer.toString(c.get(Calendar.MONTH) / 3 + 1);
 
       int m = c.get(Calendar.MONTH) + 1;
 
@@ -189,11 +184,10 @@ public class App  extends LocalizingDynamicSchemaProcessor
         monthString = "Invalid month";
         break;
       }
-      String key= "";
-      if(initid!=null) {
+      String key = "";
+      if (initid != null) {
         key = Integer.toString(Integer.parseInt(initid) + i);
-      }
-      else{
+      } else {
         SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
 
         key = format1.format(c.getTime());
@@ -202,7 +196,7 @@ public class App  extends LocalizingDynamicSchemaProcessor
       r += "    <Value column=\"id\">" + key + "</Value>\n";
       r += "    <Value column=\"year\">" + Integer.toString(c.get(Calendar.YEAR)) + "</Value>\n";
       r += "    <Value column=\"qtr\">" + q + "</Value>\n";
-      r += "    <Value column=\"month\">" + Integer.toString(c.get(Calendar.MONTH)+1) + "</Value>\n";
+      r += "    <Value column=\"month\">" + Integer.toString(c.get(Calendar.MONTH) + 1) + "</Value>\n";
       r += "    <Value column=\"month name\">" + monthString + "</Value>\n";
       r += "    <Value column=\"day\">" + Integer.toString(c.get(Calendar.DAY_OF_MONTH)) + "</Value>\n";
       r += "    </Row>\n";
